@@ -26,30 +26,35 @@ class AppStateProvider extends ChangeNotifier {
   bool _simulatedLoss = false;
   final List<NetworkRequest> _requests = [];
   final List<Timer> _requestTimers = [];
-  final NetworkDiagnosticService _diagnosticService = NetworkDiagnosticService();
+  final NetworkDiagnosticService _diagnosticService =
+      NetworkDiagnosticService();
   Timer? _diagnosticTimer;
   DiagnosticPhase _diagnosticPhase = DiagnosticPhase.idle;
   NetworkDiagnosticResult? _diagnosticResult;
   final List<NetworkDiagnosticResult> _diagnosticHistory = [];
   String? _diagnosticError;
   int _sentRequestCount = 0;
-  late final StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+  late final StreamSubscription<List<ConnectivityResult>>
+      _connectivitySubscription;
 
   ThemeMode _themeMode = ThemeMode.light;
-  String _userName = 'Gardo';
+  String _userName = 'USER';
   final String _userRole = 'Student / Designer';
 
   ThemeMode get themeMode => _themeMode;
   bool get isDarkMode => _themeMode == ThemeMode.dark;
   String get userName => _userName;
   String get userRole => _userRole;
-  NetworkStatus get networkStatus => _simulatedLoss ? NetworkStatus.offline : _networkStatus;
-  bool get isNetworkAvailable => networkStatus != NetworkStatus.offline &&
+  NetworkStatus get networkStatus =>
+      _simulatedLoss ? NetworkStatus.offline : _networkStatus;
+  bool get isNetworkAvailable =>
+      networkStatus != NetworkStatus.offline &&
       networkStatus != NetworkStatus.checking;
   bool get isSimulatedLoss => _simulatedLoss;
   List<String> get pendingRequests => List.unmodifiable(
         _requests
-            .where((request) => request.status == RequestStatus.waitingForNetwork)
+            .where(
+                (request) => request.status == RequestStatus.waitingForNetwork)
             .map((request) => request.title),
       );
   List<NetworkRequest> get requests => List.unmodifiable(_requests);
@@ -82,7 +87,8 @@ class AppStateProvider extends ChangeNotifier {
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen(_updateNetworkStatus);
     _loadInitialNetworkStatus();
-    _diagnosticTimer = Timer.periodic(const Duration(minutes: 2), (_) => runDiagnostic());
+    _diagnosticTimer =
+        Timer.periodic(const Duration(minutes: 2), (_) => runDiagnostic());
   }
 
   Future<void> runDiagnostic() async {
@@ -92,7 +98,8 @@ class AppStateProvider extends ChangeNotifier {
       return;
     }
     if (!isNetworkAvailable) {
-      _diagnosticError = 'Connect to Wi-Fi or cellular data before running a test.';
+      _diagnosticError =
+          'Connect to Wi-Fi or cellular data before running a test.';
       _diagnosticPhase = DiagnosticPhase.failed;
       notifyListeners();
       return;
@@ -192,7 +199,8 @@ class AppStateProvider extends ChangeNotifier {
 
   void _completeRequestLater(NetworkRequest request) {
     final timer = Timer(const Duration(milliseconds: 900), () {
-      if (_requests.contains(request) && request.status == RequestStatus.sending) {
+      if (_requests.contains(request) &&
+          request.status == RequestStatus.sending) {
         request.status = RequestStatus.sent;
         _sentRequestCount++;
         notifyListeners();
@@ -228,9 +236,34 @@ class AppStateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addActivity({required String title, required String text}) {
+    final cleanTitle = title.trim();
+    final cleanText = text.trim();
+    if (cleanTitle.isEmpty || cleanText.isEmpty) return;
+
+    final now = DateTime.now();
+    activities.insert(
+      0,
+      Activity(
+        id: 'activity_${now.microsecondsSinceEpoch}',
+        label: 'Activity ${activities.length + 1}',
+        title: cleanTitle,
+        dateDisplay:
+            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        deadline: 'Not set',
+        time: 'Not set',
+        objective: cleanText,
+        instructions: [
+          InstructionItem(title: 'Activity text', description: cleanText)
+        ],
+      ),
+    );
+    notifyListeners();
+  }
+
   // Static demo data standing in for a future API / database call.
-  final List<Activity> activities = const [
-    Activity(
+  final List<Activity> activities = [
+    const Activity(
       id: 'activity_1',
       label: 'Activity 1',
       title: 'Flutter Lab Portfolio App',
@@ -254,37 +287,33 @@ class AppStateProvider extends ChangeNotifier {
         ),
         InstructionItem(
           title: 'Widget Architecture',
-          description:
-              'Demonstrate clear declarative UI principles. Use '
+          description: 'Demonstrate clear declarative UI principles. Use '
               'StatelessWidget for static components (like custom buttons '
               'or cards) and StatefulWidget for local, screen-specific '
               'interactions.',
         ),
         InstructionItem(
           title: 'Responsive Layout',
-          description:
-              'Use native layout widgets (Column, Row, Expanded, or '
+          description: 'Use native layout widgets (Column, Row, Expanded, or '
               'Flexible) to ensure your screens adapt properly to '
               'different device sizes without overflowing.',
         ),
       ],
     ),
-    Activity(
+    const Activity(
       id: 'activity_2',
       label: 'Activity 2',
       title: 'Active Network & Handover Handling',
       dateDisplay: 'September 11, 2026',
       deadline: 'September 18, 2026',
       time: '11:59 PM',
-      objective:
-          'Implement handling for active network changes and connection '
+      objective: 'Implement handling for active network changes and connection '
           'handovers within the application so the UI reacts gracefully to '
           'connectivity changes.',
       instructions: [
         InstructionItem(
           title: 'Network Detection',
-          description:
-              'Detect changes in network connectivity in real time.',
+          description: 'Detect changes in network connectivity in real time.',
         ),
         InstructionItem(
           title: 'Handover Logic',

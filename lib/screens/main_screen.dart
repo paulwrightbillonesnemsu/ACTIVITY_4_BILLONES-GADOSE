@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../theme/app_theme.dart';
 import 'dashboard_screen.dart';
+import 'mesh_chat_screen.dart';
 import 'network_screen.dart';
 import 'settings_screen.dart';
 
@@ -25,12 +26,6 @@ class _MainScreenState extends State<MainScreen> {
   NetworkStatus? _notificationStatus;
   Timer? _notificationTimer;
 
-  static const _screens = <Widget>[
-    DashboardScreen(),
-    NetworkScreen(),
-    SettingsScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -49,7 +44,8 @@ class _MainScreenState extends State<MainScreen> {
     _lastNetworkStatus = status;
     _notificationTimer?.cancel();
     setState(() => _notificationStatus = status);
-    _notificationTimer = Timer(const Duration(seconds: 5), _dismissNotification);
+    _notificationTimer =
+        Timer(const Duration(seconds: 5), _dismissNotification);
   }
 
   void _dismissNotification() {
@@ -80,7 +76,15 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          IndexedStack(index: _currentIndex, children: _screens),
+          IndexedStack(
+            index: _currentIndex,
+            children: [
+              const DashboardScreen(),
+              const NetworkScreen(),
+              MeshChatScreen(isVisible: _currentIndex == 2),
+              const SettingsScreen(),
+            ],
+          ),
           if (_notificationStatus case final status?)
             Positioned(
               top: MediaQuery.paddingOf(context).top + 8,
@@ -123,10 +127,16 @@ class _MainScreenState extends State<MainScreen> {
                   onTap: () => _onTabTapped(1),
                 ),
                 _NavItem(
-                  icon: Icons.settings_rounded,
-                  label: 'Settings',
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Chats',
                   isActive: _currentIndex == 2,
                   onTap: () => _onTabTapped(2),
+                ),
+                _NavItem(
+                  icon: Icons.settings_rounded,
+                  label: 'Settings',
+                  isActive: _currentIndex == 3,
+                  onTap: () => _onTabTapped(3),
                 ),
               ],
             ),
@@ -146,8 +156,10 @@ class _ConnectivityBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOffline = status == NetworkStatus.offline;
-    final accent = isOffline ? const Color(0xFFD93025) : const Color(0xFF16803A);
-    final surface = isOffline ? const Color(0xFFFFF4F2) : const Color(0xFFF0FBF3);
+    final accent =
+        isOffline ? const Color(0xFFD93025) : const Color(0xFF16803A);
+    final surface =
+        isOffline ? const Color(0xFFFFF4F2) : const Color(0xFFF0FBF3);
     final title = isOffline ? 'Connection lost' : 'Connection restored';
     final message = isOffline
         ? 'Requests will be queued until you are back online.'

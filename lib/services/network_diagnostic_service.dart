@@ -8,8 +8,11 @@ import '../models/network_diagnostic.dart';
 typedef DiagnosticProgress = void Function(DiagnosticPhase phase);
 
 class NetworkDiagnosticService {
+  static const _transferSamples = 3;
+  static const _downloadBytes = 2 * 1024 * 1024;
+  static const _uploadBytes = 512 * 1024;
   static final _downloadUri =
-      Uri.parse('https://speed.cloudflare.com/__down?bytes=1048576');
+      Uri.parse('https://speed.cloudflare.com/__down?bytes=$_downloadBytes');
   static final _uploadUri = Uri.parse('https://speed.cloudflare.com/__up');
   static final _pingUri =
       Uri.parse('https://speed.cloudflare.com/__down?bytes=1');
@@ -27,26 +30,42 @@ class NetworkDiagnosticService {
     final idlePing = await _measureSequentialPing(samples: 5);
 
     onProgress?.call(DiagnosticPhase.measuringDownload);
-    final downloadStarted = Stopwatch()..start();
-    final download = _client.get(_downloadUri).timeout(timeout);
-    final downloadPing = _measureConcurrentPing();
-    final response = await download;
-    final downloadPingStats = await downloadPing;
-    downloadStarted.stop();
-    _ensureSuccess(response);
-    final downloadMbps =
-        _megabitsPerSecond(response.bodyBytes.length, downloadStarted.elapsed);
+    final downloadRates = <double>[];
+    final downloadPingSamples = <double?>[];
+    for (var sample = 0; sample < _transferSamples; sample++) {
+      final downloadStarted = Stopwatch()..start();
+      final download = _client.get(_downloadUri).timeout(timeout);
+      final downloadPing = _measureConcurrentPing();
+      final response = await download;
+      downloadStarted.stop();
+      final pingStats = await downloadPing;
+      _ensureSuccess(response);
+      downloadRates.add(
+        _megabitsPerSecond(response.bodyBytes.length, downloadStarted.elapsed),
+      );
+      downloadPingSamples.addAll(pingStats.samples);
+    }
+    final downloadMbps = _median(downloadRates);
+    final downloadPingStats = _PingStats.fromSamples(downloadPingSamples);
 
     onProgress?.call(DiagnosticPhase.measuringUpload);
-    final payload = Uint8List(256 * 1024);
-    final uploadStarted = Stopwatch()..start();
-    final upload = _client.post(_uploadUri, body: payload).timeout(timeout);
-    final uploadPing = _measureConcurrentPing();
-    final uploadResponse = await upload;
-    final uploadPingStats = await uploadPing;
-    uploadStarted.stop();
-    _ensureSuccess(uploadResponse);
-    final uploadMbps = _megabitsPerSecond(payload.length, uploadStarted.elapsed);
+    final payload = Uint8List(_uploadBytes);
+    final uploadRates = <double>[];
+    final uploadPingSamples = <double?>[];
+    for (var sample = 0; sample < _transferSamples; sample++) {
+      final uploadStarted = Stopwatch()..start();
+      final upload = _client.post(_uploadUri, body: payload).timeout(timeout);
+      final uploadPing = _measureConcurrentPing();
+      final response = await upload;
+      uploadStarted.stop();
+      final pingStats = await uploadPing;
+      _ensureSuccess(response);
+      uploadRates
+          .add(_megabitsPerSecond(payload.length, uploadStarted.elapsed));
+      uploadPingSamples.addAll(pingStats.samples);
+    }
+    final uploadMbps = _median(uploadRates);
+    final uploadPingStats = _PingStats.fromSamples(uploadPingSamples);
 
     final jitterSamples = [
       ...idlePing.samples,
@@ -62,8 +81,7 @@ class NetworkDiagnosticService {
       uploadMbps: uploadMbps,
       uploadPingMs: uploadPingStats.averageMs,
       jitterMs: _jitterMs(jitterSamples),
-      packetLossPercent:
-          (idlePing.lossPercent +
+      packetLossPercent: (idlePing.lossPercent +
               downloadPingStats.lossPercent +
               uploadPingStats.lossPercent) /
           3,
@@ -97,6 +115,14 @@ class NetworkDiagnosticService {
   double _megabitsPerSecond(int bytes, Duration elapsed) {
     final seconds = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
     return seconds <= 0 ? 0 : (bytes * 8 / seconds) / 1000000;
+  }
+
+  double _median(List<double> values) {
+    final sorted = [...values]..sort();
+    final middle = sorted.length ~/ 2;
+    return sorted.length.isOdd
+        ? sorted[middle]
+        : (sorted[middle - 1] + sorted[middle]) / 2;
   }
 
   double _jitterMs(List<double> samples) {

@@ -63,6 +63,21 @@ The app will build and launch directly on your phone.
   toggle that drives the global theme
 - `lib/widgets/activity_card.dart` – reusable `StatelessWidget` card
 
+## Local Mesh Chat
+
+The Chats tab provides offline, direct device-to-device text messaging using
+Google Nearby Connections. It automatically advertises this device and
+discovers other installs while the Chats screen is open. Both devices need to
+run the Android app, enable Bluetooth and Wi-Fi, and grant the nearby-device
+permissions requested by Android. On older Android versions, Location
+permission/services may also be required for discovery.
+
+Pair requests show Nearby Connections' authentication code. Compare the code
+on both devices before accepting. Messages and paired-device history are kept
+locally on each device; no server is used. This implementation supports direct
+peers only, not multi-hop message relaying. The `nearby_connections` package
+used here is Android-only; iOS discovery and messaging are not implemented. card
+
 ## How the state management requirement is satisfied
 `AppStateProvider` extends `ChangeNotifier` and is provided at the root of
 the widget tree in `main.dart`. The Settings screen calls

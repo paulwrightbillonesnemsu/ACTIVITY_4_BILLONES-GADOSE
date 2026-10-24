@@ -85,13 +85,25 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Laboratory Activities',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
-              ),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Laboratory Activities',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _showCreateActivityDialog(context, appState),
+                  tooltip: 'Create activity',
+                  icon: const Icon(Icons.add_circle_outline_rounded),
+                  color: AppColors.primary,
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             // ---- Activity list ------------------------------------------
@@ -121,4 +133,85 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _showCreateActivityDialog(
+    BuildContext context,
+    AppStateProvider appState,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _CreateActivityDialog(appState: appState),
+    );
+  }
+}
+
+class _CreateActivityDialog extends StatefulWidget {
+  final AppStateProvider appState;
+
+  const _CreateActivityDialog({required this.appState});
+
+  @override
+  State<_CreateActivityDialog> createState() => _CreateActivityDialogState();
+}
+
+class _CreateActivityDialogState extends State<_CreateActivityDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Create activity'),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: 'Activity name'),
+                textCapitalization: TextCapitalization.sentences,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Enter an activity name'
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _textController,
+                decoration: const InputDecoration(labelText: 'Activity text'),
+                textCapitalization: TextCapitalization.sentences,
+                minLines: 2,
+                maxLines: 4,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Enter activity text'
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (!_formKey.currentState!.validate()) return;
+              widget.appState.addActivity(
+                title: _titleController.text,
+                text: _textController.text,
+              );
+              Navigator.of(context).pop();
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      );
 }

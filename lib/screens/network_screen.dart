@@ -22,9 +22,12 @@ class NetworkScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.arrow_back, color: isDark ? Colors.white : AppColors.textDark),
+                Icon(Icons.arrow_back,
+                    color: isDark ? Colors.white : AppColors.textDark),
                 const SizedBox(width: 12),
-                const Text('Network Monitor', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                const Text('Network Monitor',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ],
             ),
             const SizedBox(height: 28),
@@ -82,12 +85,22 @@ class _CurrentNetworkCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Current Network', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          const Text('Current Network',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 26),
           Row(
             children: [
-              Icon(isWifi ? Icons.wifi : isCellular ? Icons.signal_cellular_alt : Icons.signal_wifi_off,
-                  color: isOfflineStatus(status) ? Colors.redAccent : (isCellular ? const Color(0xFF1960A5) : AppColors.primary),
+              Icon(
+                  isWifi
+                      ? Icons.wifi
+                      : isCellular
+                          ? Icons.signal_cellular_alt
+                          : Icons.signal_wifi_off,
+                  color: isOfflineStatus(status)
+                      ? Colors.redAccent
+                      : (isCellular
+                          ? const Color(0xFF1960A5)
+                          : AppColors.primary),
                   size: 32),
               const SizedBox(width: 18),
               Expanded(
@@ -96,7 +109,11 @@ class _CurrentNetworkCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Flexible(child: Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
+                        Flexible(
+                            child: Text(label,
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600))),
                         const SizedBox(width: 8),
                         _StatusPill(connected: !isOfflineStatus(status)),
                       ],
@@ -106,7 +123,11 @@ class _CurrentNetworkCard extends StatelessWidget {
                       isOfflineStatus(status)
                           ? 'Network unavailable. Requests will be queued.'
                           : 'Monitoring network changes in real-time',
-                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.textWhiteSoft : AppColors.textGray),
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textWhiteSoft
+                              : AppColors.textGray),
                     ),
                   ],
                 ),
@@ -122,6 +143,24 @@ class _CurrentNetworkCard extends StatelessWidget {
 bool isOfflineStatus(NetworkStatus status) =>
     status == NetworkStatus.offline || status == NetworkStatus.checking;
 
+({String value, String unit})? _speedReading(double? mbps) {
+  if (mbps == null || !mbps.isFinite) return null;
+  if (mbps < 1) {
+    final kbps = mbps * 1000;
+    return (value: kbps.toStringAsFixed(kbps < 10 ? 1 : 0), unit: 'Kbps');
+  }
+  if (mbps < 1000) {
+    return (value: mbps.toStringAsFixed(1), unit: 'Mbps');
+  }
+  final gbps = mbps / 1000;
+  return (value: gbps.toStringAsFixed(gbps < 10 ? 2 : 1), unit: 'Gbps');
+}
+
+String formatNetworkSpeed(double? mbps) {
+  final reading = _speedReading(mbps);
+  return reading == null ? '--' : '${reading.value} ${reading.unit}';
+}
+
 class _RequestCard extends StatelessWidget {
   final bool isDark;
   final bool isOffline;
@@ -129,7 +168,12 @@ class _RequestCard extends StatelessWidget {
   final VoidCallback onStartRequest;
   final VoidCallback onToggleLoss;
 
-  const _RequestCard({required this.isDark, required this.isOffline, required this.isSimulatedLoss, required this.onStartRequest, required this.onToggleLoss});
+  const _RequestCard(
+      {required this.isDark,
+      required this.isOffline,
+      required this.isSimulatedLoss,
+      required this.onStartRequest,
+      required this.onToggleLoss});
 
   @override
   Widget build(BuildContext context) => _Panel(
@@ -137,17 +181,47 @@ class _RequestCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('Network Request', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-              Icon(Icons.cloud_download_outlined, color: AppColors.primary),
-            ]),
+            const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Network Request',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  Icon(Icons.cloud_download_outlined, color: AppColors.primary),
+                ]),
             const SizedBox(height: 26),
-            const Text('Dataset Download', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            const Text('Dataset Download',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 48),
             Row(children: [
-              Expanded(child: SizedBox(height: 48, child: ElevatedButton(onPressed: onStartRequest, child: const Text('Start Request')))),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      side: const BorderSide(
+                          color: AppColors.primary, width: 1.5),
+                    ),
+                    onPressed: onStartRequest,
+                    child: const Text('Start Request'),
+                  ),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: SizedBox(height: 48, child: OutlinedButton(onPressed: onToggleLoss, child: Text(isSimulatedLoss ? 'Restore Network' : 'Simulate Loss')))),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: AppColors.primary, width: 1.5),
+                    ),
+                    onPressed: onToggleLoss,
+                    child: Text(
+                        isSimulatedLoss ? 'Restore Network' : 'Simulate Loss'),
+                  ),
+                ),
+              ),
             ]),
           ],
         ),
@@ -169,15 +243,20 @@ class _PendingRequestsCard extends StatelessWidget {
   Widget build(BuildContext context) => _Panel(
         isDark: isDark,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Pending Requests', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+          const Text('Pending Requests',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: isDark ? AppColors.darkBackground : const Color(0xFFF2F3FF), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color:
+                    isDark ? AppColors.darkBackground : const Color(0xFFF2F3FF),
+                borderRadius: BorderRadius.circular(8)),
             child: requests.isEmpty
                 ? Column(children: [
-                    const Icon(Icons.library_add_check_outlined, color: AppColors.textGray, size: 24),
+                    const Icon(Icons.library_add_check_outlined,
+                        color: AppColors.textGray, size: 24),
                     const SizedBox(height: 8),
                     Text(
                       sentRequestCount == 0
@@ -186,21 +265,28 @@ class _PendingRequestsCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
-                    const Text('New requests will automatically be queued here when interrupted by connection loss.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: AppColors.textGray)),
+                    const Text(
+                        'New requests will automatically be queued here when interrupted by connection loss.',
+                        textAlign: TextAlign.center,
+                        style:
+                            TextStyle(fontSize: 12, color: AppColors.textGray)),
                   ])
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${requests.length} request${requests.length == 1 ? '' : 's'}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 10),
-                      ...requests.map((request) => _RequestStatusCard(request: request)),
+                      ...requests.map(
+                          (request) => _RequestStatusCard(request: request)),
                       if (sentRequestCount > 0)
                         Text(
                           '$sentRequestCount request${sentRequestCount == 1 ? '' : 's'} sent successfully',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF16803A)),
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF16803A)),
                         ),
                     ],
                   ),
@@ -260,9 +346,15 @@ class _RequestStatusCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(request.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(request.title,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 3),
-                Text(status, style: TextStyle(fontSize: 11, color: accent, fontWeight: FontWeight.w500)),
+                Text(status,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: accent,
+                        fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -290,7 +382,8 @@ class _Panel extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : Colors.white,
-          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+          border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.border),
           borderRadius: BorderRadius.circular(12),
         ),
         child: child,
@@ -306,11 +399,17 @@ class _StatusPill extends StatelessWidget {
     final color = connected ? const Color(0xFF25CD47) : Colors.redAccent;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(border: Border.all(color: color.withAlpha(40)), borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+          border: Border.all(color: color.withAlpha(40)),
+          borderRadius: BorderRadius.circular(999)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 4),
-        Text(connected ? 'Connected' : 'Disconnected', style: TextStyle(fontSize: 11, color: color)),
+        Text(connected ? 'Connected' : 'Disconnected',
+            style: TextStyle(fontSize: 11, color: color)),
       ]),
     );
   }
@@ -325,9 +424,10 @@ class _DiagnosticCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final result = appState.diagnosticResult;
-    final isRunning = appState.diagnosticPhase == DiagnosticPhase.measuringIdlePing ||
-        appState.diagnosticPhase == DiagnosticPhase.measuringDownload ||
-        appState.diagnosticPhase == DiagnosticPhase.measuringUpload;
+    final isRunning =
+        appState.diagnosticPhase == DiagnosticPhase.measuringIdlePing ||
+            appState.diagnosticPhase == DiagnosticPhase.measuringDownload ||
+            appState.diagnosticPhase == DiagnosticPhase.measuringUpload;
     final health = appState.connectionHealth;
     final accent = _healthColor(health);
 
@@ -339,7 +439,9 @@ class _DiagnosticCard extends StatelessWidget {
           Row(
             children: [
               const Expanded(
-                child: Text('Network Diagnostic Dashboard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                child: Text('Network Diagnostic Dashboard',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
               Icon(Icons.speed_rounded, color: accent),
             ],
@@ -358,10 +460,15 @@ class _DiagnosticCard extends StatelessWidget {
               Container(
                 width: 12,
                 height: 12,
-                decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: accent, shape: BoxShape.circle),
               ),
               const SizedBox(width: 8),
-              Text(health.label, style: TextStyle(color: accent, fontSize: 20, fontWeight: FontWeight.w700)),
+              Text(health.label,
+                  style: TextStyle(
+                      color: accent,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700)),
               const Spacer(),
               IconButton(
                 onPressed: isRunning ? null : appState.runDiagnostic,
@@ -370,7 +477,11 @@ class _DiagnosticCard extends StatelessWidget {
               ),
             ],
           ),
-          Text(_phaseLabel(appState.diagnosticPhase), style: TextStyle(fontSize: 12, color: isDark ? AppColors.textWhiteSoft : AppColors.textGray)),
+          Text(_phaseLabel(appState.diagnosticPhase),
+              style: TextStyle(
+                  fontSize: 12,
+                  color:
+                      isDark ? AppColors.textWhiteSoft : AppColors.textGray)),
           const SizedBox(height: 10),
           _DiagnosticSteps(phase: appState.diagnosticPhase, accent: accent),
           if (isRunning) ...[
@@ -379,14 +490,27 @@ class _DiagnosticCard extends StatelessWidget {
           ],
           if (appState.diagnosticError != null) ...[
             const SizedBox(height: 10),
-            Text(appState.diagnosticError!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+            Text(appState.diagnosticError!,
+                style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
           ],
           const SizedBox(height: 4),
           Row(
             children: [
-              Expanded(child: _Metric(label: 'Idle ping', value: _formatMs(result?.idlePingMs), icon: Icons.radio_button_checked_rounded)),
-              Expanded(child: _Metric(label: 'Download', value: _formatMbps(result?.downloadMbps), icon: Icons.download_rounded)),
-              Expanded(child: _Metric(label: 'Upload', value: _formatMbps(result?.uploadMbps), icon: Icons.upload_rounded)),
+              Expanded(
+                  child: _Metric(
+                      label: 'Idle ping',
+                      value: _formatMs(result?.idlePingMs),
+                      icon: Icons.radio_button_checked_rounded)),
+              Expanded(
+                  child: _Metric(
+                      label: 'Download',
+                      value: formatNetworkSpeed(result?.downloadMbps),
+                      icon: Icons.download_rounded)),
+              Expanded(
+                  child: _Metric(
+                      label: 'Upload',
+                      value: formatNetworkSpeed(result?.uploadMbps),
+                      icon: Icons.upload_rounded)),
             ],
           ),
         ],
@@ -397,15 +521,17 @@ class _DiagnosticCard extends StatelessWidget {
   static String _phaseLabel(DiagnosticPhase phase) => switch (phase) {
         DiagnosticPhase.idle => 'Ready to test',
         DiagnosticPhase.measuringIdlePing => 'Step 1 of 3: measuring idle ping',
-        DiagnosticPhase.measuringDownload => 'Step 2 of 3: downloading while tracking ping',
-        DiagnosticPhase.measuringUpload => 'Step 3 of 3: uploading while tracking ping',
+        DiagnosticPhase.measuringDownload =>
+          'Step 2 of 3: downloading while tracking ping',
+        DiagnosticPhase.measuringUpload =>
+          'Step 3 of 3: uploading while tracking ping',
         DiagnosticPhase.complete => 'Updated just now',
         DiagnosticPhase.failed => 'Diagnostic could not complete',
       };
 
-  static String _formatMs(double? value) => value == null || value.isInfinite ? '--' : '${value.toStringAsFixed(0)} ms';
-
-  static String _formatMbps(double? value) => value == null ? '--' : '${value.toStringAsFixed(1)} Mbps';
+  static String _formatMs(double? value) => value == null || value.isInfinite
+      ? '--'
+      : '${value.toStringAsFixed(0)} ms';
 
   static Color _healthColor(ConnectionHealth health) => switch (health) {
         ConnectionHealth.excellent => const Color(0xFF16803A),
@@ -421,11 +547,13 @@ class _SpeedDial extends StatelessWidget {
   final bool isRunning;
   final Color accent;
 
-  const _SpeedDial({required this.value, required this.isRunning, required this.accent});
+  const _SpeedDial(
+      {required this.value, required this.isRunning, required this.accent});
 
   @override
   Widget build(BuildContext context) {
     final progress = (value / 100).clamp(0.0, 1.0).toDouble();
+    final reading = _speedReading(value == 0 ? null : value);
     return SizedBox(
       width: 132,
       height: 132,
@@ -446,10 +574,13 @@ class _SpeedDial extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                value == 0 ? '--' : value.toStringAsFixed(1),
-                style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
+                reading?.value ?? '--',
+                style:
+                    const TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
               ),
-              const Text('Mbps download', style: TextStyle(fontSize: 10, color: AppColors.textGray)),
+              Text('${reading?.unit ?? 'Mbps'} download',
+                  style:
+                      const TextStyle(fontSize: 10, color: AppColors.textGray)),
             ],
           ),
         ],
@@ -488,11 +619,15 @@ class _DiagnosticSteps extends StatelessWidget {
                   color: index <= activeIndex ? accent : AppColors.border,
                 ),
                 const SizedBox(height: 3),
-                Text(labels[index], textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, color: AppColors.textGray)),
+                Text(labels[index],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 9, color: AppColors.textGray)),
               ],
             ),
           ),
-          if (index < labels.length - 1) const Expanded(child: Divider(height: 1)),
+          if (index < labels.length - 1)
+            const Expanded(child: Divider(height: 1)),
         ],
       ],
     );
@@ -515,8 +650,12 @@ class _Metric extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textGray)),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textGray)),
               ],
             ),
           ),
